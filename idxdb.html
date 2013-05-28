@@ -1,0 +1,116 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html>
+    <head>
+        <script>
+            window.indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB;
+            var myDB, dbVersion = 1, 
+                openRequest = window.indexedDB.open('MyDatabase', dbVersion);
+            openRequest.onerror = function(errorEvent) {
+                console.log("Could not open DB");
+                //Async response, something didn't work
+            }
+            openRequest.onsuccess = function(successEvent) {    
+                myDB = successEvent.target.result; //Async response, grab the database from the request.
+                doStuffAfterOpen();
+            }
+            openRequest.onupgradeneeded = function(upgradeEvent) {    
+                myDB = upgradeEvent.target.result;
+                var newObjectStore = myDB.createObjectStore('lolcats', { 
+                    keyPath: 'id' });
+                newObjectStore.createIndex('nameidx', 'name', {
+                    unique: true
+                });
+                newObjectStore.createIndex('categoryidx', 'category');
+                
+            }
+            
+            function doStuffAfterOpen() { //This will only work after the async call to open the DB    
+                console.log("in doStuffAfterOpen");
+                var transaction = myDB.transaction('lolcats','readwrite');
+                var lolStore = transaction.objectStore('lolcats');
+                /*var addRequest = lolStore.add({
+                    id: 1,
+                    name: 'Caturday',
+                    category: 'Lazy kitty',
+                    url: 'http://cheezburger.com/6677232128'
+                });
+                var addRequest = lolStore.add({
+                    id: 2,
+                    name: 'Cat Bowling',
+                    category: 'Laser pointer',
+                    url: 'http://i.imgur.com/hdlPp.gif'
+                });
+                var addRequest = lolStore.add({
+                    id: 3,
+                    name: 'Miss Whiskers',
+                    category: 'Cat beard',
+                    url: 'http://instagram.com/p/VBLLnRoGi4/'
+                });
+
+                var addRequest = lolStore.add({
+                    id: 4,
+                    name: 'Gandalf the Grey',
+                    category: 'Cat beard',
+                    url: 'http://instagram.com/p/QFwQaoLaAo/'
+                });
+                
+
+                addRequest.onsuccess = function(successEvent) {
+                    console.log("Added record");
+                    console.dir(successEvent);
+                    //Async response, yes you can haz cheezburger
+                };
+                addRequest.onerror = function(errorEvent) {
+                    console.log("Could not Add records:");
+                    console.dir(errorEvent)
+                    //Async response, no cheezburger for you
+                };*/
+
+                var getRequest = lolStore.get(1);
+                getRequest.onsuccess = function(successEvent) { //Async response        
+                    console.log("Funny kitty here" + getRequest.result.url);
+                };
+                getRequest.onerror = function(errorEvent) {
+                    console.log("Could not open get records");
+                    console.dir(errorEvent);
+                    //Async response, no funny kitties here};
+                };
+                
+                var index = lolStore.index('nameidx'),
+                    keyRange = IDBKeyRange.bound('C', 'H'),
+                    idxRequest = index.openCursor(keyRange);
+                
+                                
+                idxRequest.onsuccess = function(successEvent) { //Async response 
+                    var cursor = successEvent.target.result;
+                    if (cursor) {
+                        console.log("Using key range C -H, Found kitty with index value of:"+cursor.key);                  
+                        cursor["continue"]();
+                    }
+                }; 
+                idxRequest.onerror = function(errorEvent) {
+                    console.log("could not get records with index.")
+                    //Async response, no funny kitties here};
+                };
+                               
+                index = lolStore.index('categoryidx');
+                keyRange = IDBKeyRange.only('Cat beard');
+                idxRequest = index.openCursor(keyRange);
+                idxRequest.onsuccess = function(successEvent) { //Async response 
+                    var cursor = successEvent.target.result;
+                    if (cursor) {
+                        console.log("Using categoryidx Cat beard, Found kitty with index value of:"+cursor.key);                  
+                        cursor["continue"]();
+                    }
+                }; 
+            }
+            </script>
+    </head>
+    <body>
+        <div>TODO write content</div>
+    </body>
+</html>
